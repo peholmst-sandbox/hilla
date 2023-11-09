@@ -5,7 +5,9 @@ import chaiDom from 'chai-dom';
 import sinon from 'sinon';
 import sinonChai from 'sinon-chai';
 import { useForm as _useForm, useFormPart } from '../src/index.js';
-import { type Login, LoginModel, type UserModel } from './models.js';
+import { type Login, LoginModel, type UserModel, MasterDetailModel, type MasterDto, type DetailDto, type MasterDetail } from './models.js';
+import '@vaadin/combo-box';
+
 
 use(sinonChai);
 use(chaiDom);
@@ -56,6 +58,19 @@ describe('@hilla/react-form', () => {
         <button data-testid="submit" onClick={submit}>
           Submit
         </button>
+      </>
+    );
+  }
+
+  function MasterDetailForm() {
+    const { field, model } = useForm(MasterDetailModel);
+
+    return (
+      <>
+        <vaadin-combo-box data-testid="masterId" itemValuePath="id" itemLabelPath="name" {...field(model.masterId)}></vaadin-combo-box>
+        <vaadin-combo-box data-testid="detailId" itemValuePath="id" itemLabelPath="name" {...field(model.detailId)}></vaadin-combo-box>
+        <input data-testid="masterId-input" {...field(model.masterId)} />
+        <input data-testid="detailId-input" {...field(model.detailId)} />
       </>
     );
   }
@@ -207,6 +222,41 @@ describe('@hilla/react-form', () => {
       await user.click(getByTestId('submit'));
 
       expect(getByTestId('validation.user.passwordHint')).to.have.text('OK');
+    });
+
+    describe('combo boxes', () => {
+      it('should correctly handle combo box item change when value is among the items', async () => {
+        const { getByTestId } = render(<MasterDetailForm />);
+        const masterCombo = getByTestId('masterId') as any;
+        const masterInput = getByTestId('masterId-input') as any;
+        const detailCombo = getByTestId('detailId') as any;
+        const detailInput = getByTestId('detailId-input') as any;
+
+        masterCombo.items = [{id: 1, name: "Master 1"}, {id: 2, name: "Master 2"}];
+        detailCombo.items = [{id: 101, name: "Detail 1-1"}, {id: 102, name: "Detail 1-2"}];
+
+        expect(masterCombo).to.have.property('selectedItem', undefined);
+        expect(detailCombo).to.have.property('selectedItem', undefined);
+        
+      // eslint-disable-next-line @typescript-eslint/require-await
+      await act(async () => {
+          const { read } = (useForm as UseFormSpy).returnValues[0];
+          read({
+            masterId: 1, 
+            detailId: 101
+          } as MasterDetail);
+        });
+
+        expect(masterInput).to.have.value('1');
+        expect(detailInput).to.have.value('101');
+
+        expect(masterCombo).to.have.property('selectedItem', masterCombo.items[0]);
+        expect(detailCombo).to.have.property('selectedItem', detailCombo.items[0]);
+        
+        
+        
+        
+      });
     });
 
     describe('configuration update', () => {

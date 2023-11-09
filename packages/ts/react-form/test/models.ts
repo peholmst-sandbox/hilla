@@ -62,3 +62,30 @@ export class LoginModel<T extends Login = Login> extends ObjectModel<T> {
     return this[_getPropertyModel]('rememberMe', (parent, key) => new BooleanModel(parent, key, true));
   }
 }
+
+export interface MasterDto {
+  id: number;
+  name: string;
+}
+
+export interface DetailDto {
+  id: number;
+  name: string;
+}
+
+export interface MasterDetail {
+  masterId?: number;
+  detailId?: number;
+}
+
+export class MasterDetailModel<T extends MasterDetail = MasterDetail> extends ObjectModel<T> {
+  static override createEmptyValue = makeObjectEmptyValueCreator(MasterDetailModel);
+
+  get masterId(): NumberModel {
+    return this[_getPropertyModel]('masterId', (parent, key) => new NumberModel(parent, key, true));
+  }
+
+  get detailId(): NumberModel {
+    return this[_getPropertyModel]('detailId', (parent, key) => new NumberModel(parent, key, true));
+  }
+}
